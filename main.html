@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full bg-zinc-950 text-zinc-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bare-Bones LaTeX MCQ Practice Engine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX CSS & JS for Lightning Fast LaTeX Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .katex-display { margin: 0.5em 0 !important; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-zinc-700 selection:text-zinc-100 antialiased">
+
+    <!-- Minimal Header -->
+    <header class="border-b border-zinc-800 bg-zinc-900/90 px-4 py-3 sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <span class="mono font-bold text-base text-zinc-100 tracking-wider">⚡ SPAM<span class="text-emerald-400">MCQ</span></span>
+                <span class="text-xs text-zinc-500 border-l border-zinc-800 pl-3">LaTeX Speed Drill</span>
+            </div>
+
+            <!-- Header Quick Stats -->
+            <div class="flex items-center space-x-4 text-xs mono">
+                <div>Score: <span id="stat-score" class="text-emerald-400 font-bold">0/0</span></div>
+                <div>Acc: <span id="stat-acc" class="text-sky-400 font-bold">0%</span></div>
+                <div>Streak: <span id="stat-streak" class="text-amber-400 font-bold">0🔥</span></div>
+                <div>Time: <span id="stat-timer" class="text-zinc-400">0.0s</span></div>
+            </div>
+
+            <!-- View Tabs -->
+            <div class="flex items-center space-x-1 text-xs">
+                <button id="tab-drill" onclick="switchTab('drill')" class="px-3 py-1.5 rounded bg-zinc-800 text-zinc-100 font-medium">Drill</button>
+                <button id="tab-editor" onclick="switchTab('editor')" class="px-3 py-1.5 rounded text-zinc-400 hover:text-zinc-200">Editor & JSON</button>
+                <button id="tab-bank" onclick="switchTab('bank')" class="px-3 py-1.5 rounded text-zinc-400 hover:text-zinc-200">
+                    Mistakes (<span id="mistake-count-badge" class="text-rose-400">0</span>)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col space-y-4">
+
+        <!-- VIEW 1: DRILL ENGINE -->
+        <section id="view-drill" class="flex-1 flex flex-col space-y-4">
+            
+            <!-- Controls Bar: Topic Filter & Review Mode Switch -->
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="text-zinc-400">Topic:</span>
+                    <select id="filter-topic" onchange="applyTopicFilter()" class="bg-zinc-950 border border-zinc-700 text-zinc-200 rounded px-2 py-1 focus:outline-none">
+                        <option value="ALL">All Topics</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-zinc-300">
+                        <input type="checkbox" id="mode-mistakes-only" onchange="toggleMistakesMode()" class="rounded bg-zinc-950 border-zinc-700 text-emerald-500 focus:ring-0">
+                        <span>Mistake Drill Mode</span>
+                    </label>
+
+                    <button onclick="restartDrillSession()" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded mono text-[11px]">
+                        [R] Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question Box -->
+            <div id="question-card" class="bg-zinc-900 border border-zinc-800 rounded-lg p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-6">
+                <div>
+                    <!-- Meta Header -->
+                    <div class="flex justify-between items-center text-xs text-zinc-500 mono mb-3">
+                        <span id="q-topic-tag" class="text-zinc-400 font-semibold uppercase">[Calculus]</span>
+                        <span id="q-progress-tag">Q 1/12</span>
+                    </div>
+
+                    <!-- Question LaTeX Prompt -->
+                    <div id="q-text" class="text-base sm:text-lg font-medium text-zinc-100 leading-relaxed mb-6">
+                        Loading problem...
+                    </div>
+
+                    <!-- Options Grid (4 options) -->
+                    <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Dynamic Buttons -->
+                    </div>
+                </div>
+
+                <!-- Explanation & Bottom Bar -->
+                <div class="space-y-4">
+                    <div id="explanation-box" class="hidden text-xs bg-zinc-950 border border-zinc-800 rounded p-3 text-zinc-300 space-y-1">
+                        <span class="text-amber-400 font-bold mono">EXPLANATION:</span>
+                        <div id="explanation-text" class="mt-1"></div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between border-t border-zinc-800/80 pt-3 text-xs text-zinc-500 gap-2">
+                        <div class="mono flex space-x-3 text-[11px]">
+                            <span><b class="text-zinc-300">1-4</b> / <b class="text-zinc-300">A-D</b> Pick</span>
+                            <span><b class="text-zinc-300">Space/Enter</b> Next</span>
+                            <span><b class="text-zinc-300">E</b> Explanation</span>
+                        </div>
+
+                        <button id="next-btn" onclick="nextQuestion()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs transition-colors shadow">
+                            Next Question →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: EDITOR & BULK JSON -->
+        <section id="view-editor" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Add Question Form -->
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-4">
+                    <h3 class="font-bold text-sm text-zinc-200 uppercase tracking-wider border-b border-zinc-800 pb-2">Add / Edit LaTeX Question</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block text-zinc-400 mb-1">Topic Tag</label>
+                            <input type="text" id="edit-topic" value="Calculus" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 text-xs focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-zinc-400 mb-1">Correct Answer</label>
+                            <select id="edit-correct" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 text-xs focus:outline-none">
+                                <option value="0">Option A</option>
+                                <option value="1">Option B</option>
+                                <option value="2">Option C</option>
+                                <option value="3">Option D</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block text-zinc-400 mb-1">Question Prompt (Use $...$ or $$...$$ for LaTeX)</label>
+                        <textarea id="edit-prompt" rows="3" oninput="updateLivePreview()" placeholder="e.g. Evaluate the integral $\int_0^\pi \sin(x) dx$" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 text-xs focus:outline-none focus:border-emerald-500 mono"></textarea>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <label class="block text-zinc-400">Options (Supports LaTeX)</label>
+                        <input type="text" id="edit-opt-0" oninput="updateLivePreview()" placeholder="Option A" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 focus:outline-none mono">
+                        <input type="text" id="edit-opt-1" oninput="updateLivePreview()" placeholder="Option B" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 focus:outline-none mono">
+                        <input type="text" id="edit-opt-2" oninput="updateLivePreview()" placeholder="Option C" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 focus:outline-none mono">
+                        <input type="text" id="edit-opt-3" oninput="updateLivePreview()" placeholder="Option D" class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 focus:outline-none mono">
+                    </div>
+
+                    <div class="text-xs">
+                        <label class="block text-zinc-400 mb-1">Explanation (Optional)</label>
+                        <input type="text" id="edit-explanation" oninput="updateLivePreview()" placeholder="Short LaTeX explanation..." class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-zinc-100 focus:outline-none mono">
+                    </div>
+
+                    <button onclick="saveQuestionFromEditor()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded transition-colors">
+                        + Save Question to Bank
+                    </button>
+                </div>
+
+                <!-- Live LaTeX Preview & Bulk JSON -->
+                <div class="space-y-6">
+                    <!-- Live Preview Box -->
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-3">
+                        <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Live LaTeX Render Preview</h4>
+                        <div class="p-4 bg-zinc-950 border border-zinc-800 rounded text-xs space-y-3">
+                            <div id="preview-prompt" class="text-zinc-200">Type in prompt to preview LaTeX rendering...</div>
+                            <div id="preview-options" class="grid grid-cols-2 gap-2 text-zinc-400"></div>
+                            <div id="preview-explanation" class="text-amber-300 text-[11px]"></div>
+                        </div>
+                    </div>
+
+                    <!-- JSON Import / Export -->
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-3">
+                        <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Bulk JSON Bank Import / Export</h4>
+                        <textarea id="json-textarea" rows="5" placeholder='Paste JSON array of questions here...' class="w-full bg-zinc-950 border border-zinc-700 rounded p-2 text-xs text-zinc-300 font-mono focus:outline-none"></textarea>
+                        
+                        <div class="flex space-x-2 text-xs">
+                            <button onclick="importJSON()" class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded font-semibold border border-zinc-700">Import JSON</button>
+                            <button onclick="exportJSON()" class="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded font-semibold border border-zinc-700">Export Current Bank</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: MISTAKE BANK REVIEW -->
+        <section id="view-bank" class="hidden space-y-4">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-5 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-sm text-zinc-200 uppercase tracking-wider">Mistakes & Review Queue</h3>
+                    <p class="text-xs text-zinc-400">Questions you answer incorrectly are automatically captured here for targeted drilling.</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="launchMistakeDrill()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold text-xs">
+                        🚀 Drill Missed Questions
+                    </button>
+                    <button onclick="clearMistakeBank()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded font-bold text-xs border border-zinc-700">
+                        Clear Bank
+                    </button>
+                </div>
+            </div>
+
+            <!-- List of Missed Items -->
+            <div id="mistakes-list-container" class="space-y-2">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Default Preloaded LaTeX Sample Question Bank
+        const DEFAULT_QUESTIONS = [
+            {
+                id: 'q1',
+                topic: 'Calculus',
+                question: 'Evaluate the derivative with respect to $x$: $$\\frac{d}{dx} \\int_0^x \\sin(t^2) dt$$',
+                options: ['$\\sin(x^2)$', '$\\cos(x^2)$', '$2x \\sin(x^2)$', '$\\sin(x)$'],
+                correctIndex: 0,
+                explanation: 'By the Fundamental Theorem of Calculus Part 1, $\\frac{d}{dx} \\int_a^x f(t)dt = f(x)$. Here $f(x) = \\sin(x^2)$.'
+            },
+            {
+                id: 'q2',
+                topic: 'Calculus',
+                question: 'Find the limit: $$\\lim_{x \\to 0} \\frac{\\sin(3x)}{x}$$',
+                options: ['$0$', '$1$', '$3$', 'Undefined'],
+                correctIndex: 2,
+                explanation: 'Using L\'Hôpital\'s rule or standard trigonometric limit $\\lim_{u \\to 0}\\frac{\\sin u}{u}=1$, $\\lim_{x \\to 0}\\frac{\\sin(3x)}{x} = 3 \\cdot 1 = 3$.'
+            },
+            {
+                id: 'q3',
+                topic: 'Physics',
+                question: 'In classical mechanics, the relativistic kinetic energy formula reduces to $\\frac{1}{2}mv^2$ when:',
+                options: ['$v \\gg c$', '$v \\ll c$', '$v = c$', '$m \\to 0$'],
+                correctIndex: 1,
+                explanation: 'When velocity $v$ is much smaller than light speed $c$ ($v \\ll c$), relativistic effects are negligible.'
+            },
+            {
+                id: 'q4',
+                topic: 'Physics',
+                question: 'Which of Maxwell\'s equations expresses Gauss\'s Law for magnetism: $\\nabla \\cdot \\mathbf{B} = 0$?',
+                options: ['Magnetic monopoles do not exist', 'Electric charges produce fields', 'Changing B creates E field', 'Currents produce magnetic fields'],
+                correctIndex: 0,
+                explanation: '$\\nabla \\cdot \\mathbf{B} = 0$ signifies there are no magnetic monopoles; magnetic field lines always form closed loops.'
+            },
+            {
+                id: 'q5',
+                topic: 'Discrete Math',
+                question: 'What is the sum of the first $n$ positive integers: $$\\sum_{k=1}^n k$$',
+                options: ['$\\frac{n(n+1)}{2}$', '$n^2$', '$\\frac{n(n-1)}{2}$', '$\\frac{n(n+1)(2n+1)}{6}$'],
+                correctIndex: 0,
+                explanation: 'The arithmetic series sum is given by Gauss\'s formula $\\frac{n(n+1)}{2}$.'
+            },
+            {
+                id: 'q6',
+                topic: 'Discrete Math',
+                question: 'How many subsets does a finite set with $n$ elements contain?',
+                options: ['$n^2$', '$2^n$', '$n!$', '$2n$'],
+                correctIndex: 1,
+                explanation: 'Each element can either be included or excluded (2 choices per element), giving $2^n$ total subsets.'
+            },
+            {
+                id: 'q7',
+                topic: 'Computer Science',
+                question: 'By Master Theorem, solve $T(n) = 2T\\left(\\frac{n}{2}\\right) + O(n)$:',
+                options: ['$\\Theta(n)$', '$\\Theta(n \\log n)$', '$\\Theta(n^2)$', '$\\Theta(\\log n)$'],
+                correctIndex: 1,
+                explanation: 'Case 2 of Master Theorem applies where $a=2, b=2, d=1$, yielding $T(n) = \\Theta(n \\log n)$.'
+            },
+            {
+                id: 'q8',
+                topic: 'Linear Algebra',
+                question: 'What are the eigenvalues of the matrix $A = \\begin{pmatrix} 4 & 0 \\\\ 0 & 9 \\end{pmatrix}$?',
+                options: ['$\\lambda = 2, 3$', '$\\lambda = 4, 9$', '$\\lambda = 0, 13$', '$\\lambda = 1, 36$'],
+                correctIndex: 1,
+                explanation: 'For a diagonal matrix, the eigenvalues are simply the entries along the main diagonal.'
+            },
+            {
+                id: 'q9',
+                topic: 'Calculus',
+                question: 'Compute the indefinite integral: $$\\int e^{3x} dx$$',
+                options: ['$\\frac{1}{3}e^{3x} + C$', '$3e^{3x} + C$', '$e^{3x} + C$', '$\\frac{1}{3}x e^{3x} + C$'],
+                correctIndex: 0,
+                explanation: 'By substitution $u=3x, du=3dx$, $\\int e^{3x}dx = \\frac{1}{3}e^{3x} + C$.'
+            },
+            {
+                id: 'q10',
+                topic: 'Discrete Math',
+                question: 'In Boolean logic, simplify the expression: $A \\oplus A$',
+                options: ['$1$', '$A$', '$0$', '$\\bar{A}$'],
+                correctIndex: 2,
+                explanation: 'XORing any value with itself always evaluates to 0 ($0 \\oplus 0 = 0$, $1 \\oplus 1 = 0$).'
+            }
+        ];
+
+        let questionBank = JSON.parse(localStorage.getItem('mcq_latex_bank')) || DEFAULT_QUESTIONS;
+        let mistakeBank = JSON.parse(localStorage.getItem('mcq_latex_mistakes')) || [];
+        
+        let filteredBank = [...questionBank];
+        let currentIndex = 0;
+        let answered = false;
+
+        // Stats
+        let statsCorrect = 0;
+        let statsTotal = 0;
+        let streak = 0;
+        let questionStartTime = Date.now();
+        let timerInterval = null;
+
+        function triggerKaTeX(container) {
+            if (window.renderMathInElement) {
+                renderMathInElement(container, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        function switchTab(tab) {
+            ['drill', 'editor', 'bank'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "px-3 py-1.5 rounded text-zinc-400 hover:text-zinc-200";
+            });
+
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).className = "px-3 py-1.5 rounded bg-zinc-800 text-zinc-100 font-medium";
+
+            if (tab === 'bank') renderMistakesList();
+            if (tab === 'editor') updateLivePreview();
+        }
+
+        function populateTopicDropdown() {
+            const select = document.getElementById('filter-topic');
+            const topics = ['ALL', ...new Set(questionBank.map(q => q.topic || 'General'))];
+            select.innerHTML = topics.map(t => `<option value="${t}">${t === 'ALL' ? 'All Topics' : t}</option>`).join('');
+        }
+
+        function applyTopicFilter() {
+            const topic = document.getElementById('filter-topic').value;
+            const mistakesOnly = document.getElementById('mode-mistakes-only').checked;
+
+            let source = mistakesOnly ? mistakeBank : questionBank;
+
+            if (topic === 'ALL') {
+                filteredBank = [...source];
+            } else {
+                filteredBank = source.filter(q => q.topic === topic);
+            }
+
+            currentIndex = 0;
+            renderQuestion();
+        }
+
+        function toggleMistakesMode() {
+            applyTopicFilter();
+        }
+
+        function restartDrillSession() {
+            statsCorrect = 0;
+            statsTotal = 0;
+            streak = 0;
+            currentIndex = 0;
+            updateStatsUI();
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (!filteredBank || filteredBank.length === 0) {
+                document.getElementById('q-text').innerHTML = `<span class="text-zinc-500 italic">No questions available in this filter.</span>`;
+                document.getElementById('options-grid').innerHTML = '';
+                document.getElementById('q-progress-tag').innerText = `Q 0/0`;
+                return;
+            }
+
+            if (currentIndex >= filteredBank.length) {
+                currentIndex = 0; // seamless loop for infinite grinding
+            }
+
+            const q = filteredBank[currentIndex];
+            answered = false;
+            questionStartTime = Date.now();
+            startQuestionTimer();
+
+            // Render Prompt & Topic Tag
+            document.getElementById('q-topic-tag').innerText = `[${q.topic || 'General'}]`;
+            document.getElementById('q-progress-tag').innerText = `Q ${currentIndex + 1}/${filteredBank.length}`;
+            
+            const qTextEl = document.getElementById('q-text');
+            qTextEl.innerHTML = q.question;
+            triggerKaTeX(qTextEl);
+
+            // Hide explanation
+            document.getElementById('explanation-box').classList.add('hidden');
+
+            // Render Options
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+
+            const keys = ['1', '2', '3', '4'];
+            const letters = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `opt-btn-${idx}`;
+                btn.onclick = () => selectOption(idx);
+                btn.className = "w-full text-left p-3.5 rounded bg-zinc-950 border border-zinc-800 hover:border-zinc-600 transition-colors flex items-start justify-between group";
+
+                btn.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <span class="mono text-xs font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 group-hover:bg-zinc-700">
+                            ${letters[idx]}
+                        </span>
+                        <div class="opt-content text-sm text-zinc-200">${optText}</div>
+                    </div>
+                    <span class="mono text-[10px] text-zinc-600 ml-2">[${keys[idx]}]</span>
+                `;
+
+                grid.appendChild(btn);
+                triggerKaTeX(btn.querySelector('.opt-content'));
+            });
+        }
+
+        function selectOption(idx) {
+            if (answered || filteredBank.length === 0) return;
+            answered = true;
+            stopQuestionTimer();
+
+            const q = filteredBank[currentIndex];
+            const isCorrect = (idx === q.correctIndex);
+
+            statsTotal++;
+            if (isCorrect) {
+                statsCorrect++;
+                streak++;
+            } else {
+                streak = 0;
+                saveToMistakeBank(q);
+            }
+
+            updateStatsUI();
+
+            // Style buttons
+            const chosenBtn = document.getElementById(`opt-btn-${idx}`);
+            const correctBtn = document.getElementById(`opt-btn-${q.correctIndex}`);
+
+            if (isCorrect) {
+                chosenBtn.className = "w-full text-left p-3.5 rounded bg-emerald-950/80 border-2 border-emerald-500 text-white flex items-start justify-between";
+            } else {
+                chosenBtn.className = "w-full text-left p-3.5 rounded bg-rose-950/80 border-2 border-rose-500 text-white flex items-start justify-between";
+                correctBtn.className = "w-full text-left p-3.5 rounded bg-emerald-950/60 border-2 border-emerald-500/80 text-white flex items-start justify-between";
+            }
+
+            // Show explanation if available
+            if (q.explanation) {
+                const expBox = document.getElementById('explanation-box');
+                const expText = document.getElementById('explanation-text');
+                expText.innerHTML = q.explanation;
+                triggerKaTeX(expText);
+                expBox.classList.remove('hidden');
+            }
+        }
+
+        function nextQuestion() {
+            if (filteredBank.length === 0) return;
+            currentIndex++;
+            renderQuestion();
+        }
+
+        function toggleExplanation() {
+            const expBox = document.getElementById('explanation-box');
+            expBox.classList.toggle('hidden');
+        }
+
+        function saveToMistakeBank(q) {
+            if (!mistakeBank.some(m => m.question === q.question)) {
+                mistakeBank.push(q);
+                localStorage.setItem('mcq_latex_mistakes', JSON.stringify(mistakeBank));
+                document.getElementById('mistake-count-badge').innerText = mistakeBank.length;
+            }
+        }
+
+        function clearMistakeBank() {
+            mistakeBank = [];
+            localStorage.setItem('mcq_latex_mistakes', JSON.stringify(mistakeBank));
+            document.getElementById('mistake-count-badge').innerText = 0;
+            renderMistakesList();
+        }
+
+        function launchMistakeDrill() {
+            if (mistakeBank.length === 0) {
+                alert("Mistake queue is empty!");
+                return;
+            }
+            document.getElementById('mode-mistakes-only').checked = true;
+            switchTab('drill');
+            toggleMistakesMode();
+        }
+
+        function startQuestionTimer() {
+            stopQuestionTimer();
+            timerInterval = setInterval(() => {
+                const elapsedSec = ((Date.now() - questionStartTime) / 1000).toFixed(1);
+                document.getElementById('stat-timer').innerText = `${elapsedSec}s`;
+            }, 100);
+        }
+
+        function stopQuestionTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-score').innerText = `${statsCorrect}/${statsTotal}`;
+            const acc = statsTotal > 0 ? Math.round((statsCorrect / statsTotal) * 100) : 0;
+            document.getElementById('stat-acc').innerText = `${acc}%`;
+            document.getElementById('stat-streak').innerText = `${streak}🔥`;
+            document.getElementById('mistake-count-badge').innerText = mistakeBank.length;
+        }
+
+        function updateLivePreview() {
+            const prompt = document.getElementById('edit-prompt').value || 'Question LaTeX preview...';
+            const opt0 = document.getElementById('edit-opt-0').value || 'A';
+            const opt1 = document.getElementById('edit-opt-1').value || 'B';
+            const opt2 = document.getElementById('edit-opt-2').value || 'C';
+            const opt3 = document.getElementById('edit-opt-3').value || 'D';
+            const exp = document.getElementById('edit-explanation').value;
+
+            const pEl = document.getElementById('preview-prompt');
+            pEl.innerHTML = prompt;
+            triggerKaTeX(pEl);
+
+            const optsEl = document.getElementById('preview-options');
+            optsEl.innerHTML = `
+                <div>A: <span>${opt0}</span></div>
+                <div>B: <span>${opt1}</span></div>
+                <div>C: <span>${opt2}</span></div>
+                <div>D: <span>${opt3}</span></div>
+            `;
+            triggerKaTeX(optsEl);
+
+            const expEl = document.getElementById('preview-explanation');
+            expEl.innerHTML = exp ? `Exp: ${exp}` : '';
+            triggerKaTeX(expEl);
+        }
+
+        function saveQuestionFromEditor() {
+            const topic = document.getElementById('edit-topic').value.trim() || 'General';
+            const prompt = document.getElementById('edit-prompt').value.trim();
+            const opt0 = document.getElementById('edit-opt-0').value.trim();
+            const opt1 = document.getElementById('edit-opt-1').value.trim();
+            const opt2 = document.getElementById('edit-opt-2').value.trim();
+            const opt3 = document.getElementById('edit-opt-3').value.trim();
+            const correctIndex = parseInt(document.getElementById('edit-correct').value);
+            const explanation = document.getElementById('edit-explanation').value.trim();
+
+            if (!prompt || !opt0 || !opt1 || !opt2 || !opt3) {
+                alert("Please fill in prompt and all 4 options!");
+                return;
+            }
+
+            const newQ = {
+                id: `custom-${Date.now()}`,
+                topic,
+                question: prompt,
+                options: [opt0, opt1, opt2, opt3],
+                correctIndex,
+                explanation
+            };
+
+            questionBank.push(newQ);
+            localStorage.setItem('mcq_latex_bank', JSON.stringify(questionBank));
+
+            // Clear inputs
+            document.getElementById('edit-prompt').value = '';
+            document.getElementById('edit-opt-0').value = '';
+            document.getElementById('edit-opt-1').value = '';
+            document.getElementById('edit-opt-2').value = '';
+            document.getElementById('edit-opt-3').value = '';
+            document.getElementById('edit-explanation').value = '';
+
+            populateTopicDropdown();
+            applyTopicFilter();
+            alert("Question added to bank!");
+        }
+
+        function importJSON() {
+            const raw = document.getElementById('json-textarea').value.trim();
+            if (!raw) return;
+
+            try {
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) throw new Error("JSON must be an array of question objects");
+
+                questionBank = parsed;
+                localStorage.setItem('mcq_latex_bank', JSON.stringify(questionBank));
+                populateTopicDropdown();
+                applyTopicFilter();
+                alert(`Successfully imported ${parsed.length} questions!`);
+            } catch (err) {
+                alert("Import error. Format must be JSON array: [{question, options, correctIndex, topic, explanation}]");
+            }
+        }
+
+        function exportJSON() {
+            document.getElementById('json-textarea').value = JSON.stringify(questionBank, null, 2);
+        }
+
+        function renderMistakesList() {
+            const container = document.getElementById('mistakes-list-container');
+            container.innerHTML = '';
+
+            if (mistakeBank.length === 0) {
+                container.innerHTML = `<div class="p-4 bg-zinc-900 border border-zinc-800 text-xs text-zinc-500 italic rounded">No mistakes recorded!</div>`;
+                return;
+            }
+
+            mistakeBank.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-zinc-900 border border-zinc-800 rounded text-xs space-y-1";
+                div.innerHTML = `
+                    <div class="flex justify-between text-zinc-500 mono text-[10px]">
+                        <span>[${item.topic || 'General'}]</span>
+                        <span>Item #${idx+1}</span>
+                    </div>
+                    <div class="q-content font-medium text-zinc-200">${item.question}</div>
+                    <div class="text-emerald-400 font-mono text-[11px] pt-1">Correct Answer: ${item.options[item.correctIndex]}</div>
+                `;
+                container.appendChild(div);
+                triggerKaTeX(div);
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            // Disable hotkeys if typing in inputs
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+            const key = e.key.toUpperCase();
+
+            if (key === '1' || key === 'A') selectOption(0);
+            else if (key === '2' || key === 'B') selectOption(1);
+            else if (key === '3' || key === 'C') selectOption(2);
+            else if (key === '4' || key === 'D') selectOption(3);
+
+            else if (e.code === 'Space' || key === 'ENTER') {
+                e.preventDefault();
+                nextQuestion();
+            }
+            else if (key === 'E') {
+                toggleExplanation();
+            }
+            else if (key === 'R') {
+                restartDrillSession();
+            }
+        });
+
+        // Initialize App
+        window.onload = function() {
+            populateTopicDropdown();
+            applyTopicFilter();
+            updateStatsUI();
+        };
+    </script>
+</body>
+</html>
