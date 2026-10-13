@@ -31,48 +31,104 @@ function makeQuestion(questionText, correctAnswer, wrongAnswers, explanationText
 // AND choice orders (A, B, C, D) are freshly shuffled on every restart.
 // =========================================================
 const topicDefinitions = {
-  "Calculus": [
+  "SI Units": [
     // Dynamic Derivative Problem
     () => {
-      const a = getRandomInt(2, 9);
-      const n = getRandomInt(2, 5);
-      const b = getRandomInt(1, 9);
-      const correctCoeff = a * n;
-      const correctExp = n - 1;
+  const constants = [
+  {
+    name: `\\varepsilon_0`,
+    dim: [-1, -3, 4, 2, 0, 0, 0] // kg, m, s, A, K, mol, cd
+  },
+  {
+    name: `\\mu_0`,
+    dim: [1, 1, -2, -2, 0, 0, 0]
+  },
+  {
+    name: `h`,
+    dim: [1, 2, -1, 0, 0, 0, 0]
+  },
+  {
+    name: `G`,
+    dim: [-1, 3, -2, 0, 0, 0, 0]
+  },
+  {
+    name: `c`,
+    dim: [0, 1, -1, 0, 0, 0, 0]
+  },
+  {
+    name: `k_B`,
+    dim: [1, 2, -2, 0, -1, 0, 0]
+  },
+  {
+    name: `R`,
+    dim: [1, 2, -2, 0, -1, -1, 0]
+  },
+  {
+    name: `\\sigma`,
+    dim: [1, 0, -3, 0, -4, 0, 0]
+  },
+  {
+    name: `m_e`,
+    dim: [1, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    name: `m_p`,
+    dim: [1, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    name: `k_e`,
+    dim: [1, 3, -4, -2, 0, 0, 0]
+  }
+];
 
-      return makeQuestion(
-        `What is the derivative of $f(x) = ${a}x^{${n}} + ${b}x$?`,
-        `$${correctCoeff}x^{${correctExp}} + ${b}$`,
-        [
-          `$${a}x^{${correctExp}} + ${b}$`,
-          `$${correctCoeff}x^{${n}} + ${b}$`,
-          `$${correctCoeff}x^{${correctExp}}$`
-        ],
-        `Power rule: $\\frac{d}{dx}(${a}x^{${n}}) = ${a} \\cdot ${n}x^{${correctExp}} = ${correctCoeff}x^{${correctExp}}$ and $\\frac{d}{dx}(${b}x) = ${b}$.`
-      );
-    },
+  const c1 = constants[getRandomInt(0, constants.length - 1)];
+  let c2 = constants[getRandomInt(0, constants.length - 1)];
 
-    // Dynamic Definite Integral Problem
-    () => {
-      const a = getRandomInt(1, 5) * 2;
-      const k = getRandomInt(1, 4);
-      const ansValue = (a / 2) * (k * k);
+  // Avoid dividing by the same constant, which would make the question trivial.
+  while (c2 === c1) {
+    c2 = constants[getRandomInt(0, constants.length - 1)];
+  }
 
-      return makeQuestion(
-        `Evaluate the integral: $$\\int_{0}^{${k}} ${a}x \\, dx$$`,
-        `$${ansValue}$`,
-        [`$${ansValue * 2}$`, `$${ansValue + a}$`, `$${(a / 2) * k}$`],
-        `Antiderivative is $${a / 2}x^2$. Evaluating from $0$ to $${k}$: $${a / 2}(${k}^2) = ${ansValue}$.`
-      );
-    },
+  const dim = c1.dim.map((x, i) => x - c2.dim[i]);
 
-    // Static Problem (choices automatically randomized)
-    () => makeQuestion(
-      "Which of the following equals $\\lim_{x \\to 0} \\frac{\\sin(x)}{x}$?",
-      "$1$",
-      ["$0$", "$\\infty$", "Undefined"],
-      "This is a fundamental trigonometric limit equal to 1."
-    )
+  const baseNames = ["kg", "m", "s", "A", "K", "mol", "cd"];
+
+  const dimToLatex = (d) => {
+    const parts = [];
+
+    d.forEach((power, i) => {
+      if (power === 0) return;
+
+      if (power === 1) {
+        parts.push(`\\mathrm{${baseNames[i]}}`);
+      } else if (power === -1) {
+        parts.push(`\\mathrm{${baseNames[i]}^{-1}}`);
+      } else {
+        parts.push(`\\mathrm{${baseNames[i]}^{${power}}}`);
+      }
+    });
+
+    return parts.length ? parts.join("\\,") : "\\mathrm{dimensionless}";
+  };
+
+  const correct = `$${dimToLatex(dim)}$`;
+
+  // Simple distractors: flip the ratio or square it.
+  const flipped = c1.dim.map((x, i) => c2.dim[i] - x);
+  const squared = dim.map((x) => x * 2);
+
+  return makeQuestion(
+    `What are the SI base units of $\\frac{${c1.name}}{${c2.name}}$?`,
+    correct,
+    [
+      correct,
+      `$${dimToLatex(flipped)}$`,
+      `$${dimToLatex(squared)}$`
+    ],
+    `Add exponents when multiplying units and subtract them when dividing. Therefore, $\\frac{${c1.name}}{${c2.name}}$ has SI base units ${correct}.`
+  );
+},
+
   ],
 
   "Chapter 1: End of the Age of Silicon": [
@@ -220,14 +276,14 @@ const topicDefinitions = {
   ),
 
   () => makeQuestion(
-    "According to these notes, what is the key bottleneck for solar energy?",
+    "What is the key bottleneck for solar energy?",
     "The battery",
     [
       "The solar panel",
       "The electrical grid",
       "The inverter"
     ],
-    "These notes identify the battery as the key bottleneck for solar energy."
+    "The battery is the key bottleneck for solar energy."
   ),
 
   () => makeQuestion(
