@@ -32,104 +32,142 @@ function makeQuestion(questionText, correctAnswer, wrongAnswers, explanationText
 // =========================================================
 const topicDefinitions = {
   "SI Units": [
-    // Dynamic Derivative Problem
-    () => {
-  const constants = [
-  {
-    name: `\\varepsilon_0`,
-    dim: [-1, -3, 4, 2, 0, 0, 0] // kg, m, s, A, K, mol, cd
-  },
-  {
-    name: `\\mu_0`,
-    dim: [1, 1, -2, -2, 0, 0, 0]
-  },
-  {
-    name: `h`,
-    dim: [1, 2, -1, 0, 0, 0, 0]
-  },
-  {
-    name: `G`,
-    dim: [-1, 3, -2, 0, 0, 0, 0]
-  },
-  {
-    name: `c`,
-    dim: [0, 1, -1, 0, 0, 0, 0]
-  },
-  {
-    name: `k_B`,
-    dim: [1, 2, -2, 0, -1, 0, 0]
-  },
-  {
-    name: `R`,
-    dim: [1, 2, -2, 0, -1, -1, 0]
-  },
-  {
-    name: `\\sigma`,
-    dim: [1, 0, -3, 0, -4, 0, 0]
-  },
-  {
-    name: `m_e`,
-    dim: [1, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    name: `m_p`,
-    dim: [1, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    name: `k_e`,
-    dim: [1, 3, -4, -2, 0, 0, 0]
-  }
-];
-
-  const c1 = constants[getRandomInt(0, constants.length - 1)];
-  let c2 = constants[getRandomInt(0, constants.length - 1)];
-
-  // Avoid dividing by the same constant, which would make the question trivial.
-  while (c2 === c1) {
-    c2 = constants[getRandomInt(0, constants.length - 1)];
-  }
-
-  const dim = c1.dim.map((x, i) => x - c2.dim[i]);
-
-  const baseNames = ["kg", "m", "s", "A", "K", "mol", "cd"];
-
-  const dimToLatex = (d) => {
-    const parts = [];
-
-    d.forEach((power, i) => {
-      if (power === 0) return;
-
-      if (power === 1) {
-        parts.push(`\\mathrm{${baseNames[i]}}`);
-      } else if (power === -1) {
-        parts.push(`\\mathrm{${baseNames[i]}^{-1}}`);
-      } else {
-        parts.push(`\\mathrm{${baseNames[i]}^{${power}}}`);
+  // Dynamic SI Unit Problem
+  () => {
+    const constants = [
+      {
+        name: `\\varepsilon_0`,
+        dim: [-1, -3, 4, 2, 0, 0, 0] // kg, m, s, A, K, mol, cd
+      },
+      {
+        name: `\\mu_0`,
+        dim: [1, 1, -2, -2, 0, 0, 0]
+      },
+      {
+        name: `h`,
+        dim: [1, 2, -1, 0, 0, 0, 0]
+      },
+      {
+        name: `G`,
+        dim: [-1, 3, -2, 0, 0, 0, 0]
+      },
+      {
+        name: `c`,
+        dim: [0, 1, -1, 0, 0, 0, 0]
+      },
+      {
+        name: `k_B`,
+        dim: [1, 2, -2, 0, -1, 0, 0]
+      },
+      {
+        name: `R`,
+        dim: [1, 2, -2, 0, -1, -1, 0]
+      },
+      {
+        name: `\\sigma`,
+        dim: [1, 0, -3, 0, -4, 0, 0]
+      },
+      {
+        name: `m_e`,
+        dim: [1, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        name: `m_p`,
+        dim: [1, 0, 0, 0, 0, 0, 0]
+      },
+      {
+        name: `k_e`,
+        dim: [1, 3, -4, -2, 0, 0, 0]
       }
-    });
+    ];
 
-    return parts.length ? parts.join("\\,") : "\\mathrm{dimensionless}";
-  };
 
-  const correct = `$${dimToLatex(dim)}$`;
+    const c1 = constants[getRandomInt(0, constants.length - 1)];
+    let c2 = constants[getRandomInt(0, constants.length - 1)];
 
-  // Simple distractors: flip the ratio or square it.
-  const flipped = c1.dim.map((x, i) => c2.dim[i] - x);
-  const squared = dim.map((x) => x * 2);
 
-  return makeQuestion(
-    `What are the SI base units of $\\frac{${c1.name}}{${c2.name}}$?`,
-    correct,
-    [
+    // Avoid using the same constant twice for multiply/divide.
+    while (c2 === c1) {
+      c2 = constants[getRandomInt(0, constants.length - 1)];
+    }
+
+
+    // Only allow square roots when all exponents are even.
+    const canSqrt = c1.dim.every((power) => power % 2 === 0);
+
+
+    const operations = canSqrt
+      ? ["multiply", "multiply", "divide", "divide", "square", "sqrt"]
+      : ["multiply", "multiply", "divide", "divide", "square"];
+
+
+    const operation = operations[getRandomInt(0, operations.length - 1)];
+
+
+    let prompt;
+    let dim;
+
+
+    if (operation === "multiply") {
+      prompt = `${c1.name} \\cdot ${c2.name}`;
+      dim = c1.dim.map((power, i) => power + c2.dim[i]);
+    } else if (operation === "divide") {
+      prompt = `\\frac{${c1.name}}{${c2.name}}`;
+      dim = c1.dim.map((power, i) => power - c2.dim[i]);
+    } else if (operation === "square") {
+      prompt = `\\left(${c1.name}\\right)^2`;
+      dim = c1.dim.map((power) => power * 2);
+    } else {
+      prompt = `\\sqrt{${c1.name}}`;
+      dim = c1.dim.map((power) => power / 2);
+    }
+
+
+    const baseNames = ["kg", "m", "s", "A", "K", "mol", "cd"];
+
+
+    const dimToLatex = (d) => {
+      const parts = [];
+
+
+      d.forEach((power, i) => {
+        if (power === 0) return;
+
+
+        if (power === 1) {
+          parts.push(`\\mathrm{${baseNames[i]}}`);
+        } else if (power === -1) {
+          parts.push(`\\mathrm{${baseNames[i]}^{-1}}`);
+        } else {
+          parts.push(`\\mathrm{${baseNames[i]}^{${power}}}`);
+        }
+      });
+
+
+      return parts.length ? parts.join("\\,") : "\\mathrm{dimensionless}";
+    };
+
+
+    const correct = `$${dimToLatex(dim)}` + "$";
+
+
+    // Distractors: reciprocal and squared version.
+    const reciprocal = dim.map((power) => -power);
+    const squared = dim.map((power) => power * 2);
+
+
+    return makeQuestion(
+      `What are the SI base units of $${prompt}$?`,
       correct,
-      `$${dimToLatex(flipped)}$`,
-      `$${dimToLatex(squared)}$`
-    ],
-    `Add exponents when multiplying units and subtract them when dividing. Therefore, $\\frac{${c1.name}}{${c2.name}}$ has SI base units ${correct}.`
-  );
-},
-
-  ],
+      [
+        correct,
+        `$${dimToLatex(reciprocal)}$`,
+        `$${dimToLatex(squared)}$`
+      ],
+      `Use dimensional analysis: multiplication adds exponents, division subtracts them, squaring doubles them, and a square root halves them. Therefore, the expression has SI base units ${correct}.`
+    );
+  },
+],
 
   "Chapter 1: End of the Age of Silicon": [
   () => makeQuestion(
@@ -350,6 +388,238 @@ const topicDefinitions = {
       "They could replace fertilizer with solar panels."
     ],
     "Quantum computers could help make the Haber-Bosch process more efficient, reducing its energy use."
+  )
+],
+"Chapter 2: End of the Digital Age": [
+  () => makeQuestion(
+    "What is the Antikythera mechanism considered to be?",
+    "The world’s oldest computer",
+    [
+      "The first electronic computer",
+      "The first steam engine",
+      "The first telescope"
+    ],
+    "The Antikythera mechanism, created by the Greeks about 2,000 years ago, is considered the world’s oldest computer."
+  ),
+
+  () => makeQuestion(
+    "What did the Antikythera mechanism simulate?",
+    "The movements of heavenly bodies",
+    [
+      "Weather patterns",
+      "Human brains",
+      "Ocean currents"
+    ],
+    "The Antikythera mechanism was used to simulate the movements of astronomical bodies."
+  ),
+
+  () => makeQuestion(
+    "Who is known as the father of the computer?",
+    "Charles Babbage",
+    [
+      "Alan Turing",
+      "David Hilbert",
+      "Kurt Gödel"
+    ],
+    "Charles Babbage is known as the father of the computer."
+  ),
+
+  () => makeQuestion(
+    "What were Babbage’s two main goals for his machine?",
+    "To predict astronomical movements and produce accurate navigational charts",
+    [
+      "To encrypt messages and build rockets",
+      "To create artificial intelligence and translate languages",
+      "To calculate taxes and design bridges"
+    ],
+    "Babbage wanted a machine that could predict astronomical movements and produce accurate navigational charts."
+  ),
+
+  () => makeQuestion(
+    "Who did Charles Babbage recruit to help with his computing work?",
+    "Ada Lovelace",
+    [
+      "Grace Hopper",
+      "Marie Curie",
+      "Rosalind Franklin"
+    ],
+    "Babbage recruited Ada Lovelace to help with his computing project."
+  ),
+
+  () => makeQuestion(
+    "What is Ada Lovelace known as?",
+    "The world’s first programmer",
+    [
+      "The inventor of the vacuum tube",
+      "The founder of artificial intelligence",
+      "The first computer engineer"
+    ],
+    "Ada Lovelace is known as the world’s first programmer."
+  ),
+
+  () => makeQuestion(
+    "What program did Ada Lovelace write?",
+    "A program to produce Bernoulli numbers",
+    [
+      "A program to break the Enigma code",
+      "A program to simulate planetary motion",
+      "A program to run the Turing test"
+    ],
+    "Ada Lovelace wrote a program that could produce Bernoulli numbers."
+  ),
+
+  () => makeQuestion(
+    "What did David Hilbert propose?",
+    "23 major unsolved problems in mathematics",
+    [
+      "23 rules for building computers",
+      "23 laws of physics",
+      "23 types of artificial intelligence"
+    ],
+    "David Hilbert proposed 23 major unsolved problems that shaped much of 20th-century mathematics."
+  ),
+
+  () => makeQuestion(
+    "What did Hilbert want to prove about mathematics?",
+    "That all true mathematical statements could be proven from a set of axioms",
+    [
+      "That mathematics was purely based on observation",
+      "That computers could never solve equations",
+      "That geometry was more important than algebra"
+    ],
+    "One of Hilbert’s goals was to prove that all true statements in mathematics could be proven from a given set of axioms."
+  ),
+
+  () => makeQuestion(
+    "What did Kurt Gödel prove about mathematics?",
+    "That mathematics can never be fully completed",
+    [
+      "That every math problem has a simple solution",
+      "That all numbers are rational",
+      "That computers can solve every problem"
+    ],
+    "Kurt Gödel proved that it is impossible to prove every true mathematical statement, meaning math can never be completed."
+  ),
+
+  () => makeQuestion(
+    "What question did Alan Turing ask?",
+    "Can computers prove everything?",
+    [
+      "Can computers travel through time?",
+      "Can computers replace the human brain?",
+      "Can computers create new elements?"
+    ],
+    "Turing asked whether computers could prove everything, building on Gödel’s work."
+  ),
+
+  () => makeQuestion(
+    "What did Alan Turing develop to explore computation?",
+    "The Turing machine",
+    [
+      "The Colossus computer",
+      "The Antikythera mechanism",
+      "The Bernoulli engine"
+    ],
+    "Alan Turing developed the Turing machine as a theoretical model of computation."
+  ),
+
+  () => makeQuestion(
+    "How does a Turing machine work?",
+    "It reads symbols on an infinite tape and follows rules to write, move, change state, or halt",
+    [
+      "It uses vacuum tubes to process electrical signals",
+      "It simulates planets using gears",
+      "It stores data only in magnetic disks"
+    ],
+    "A Turing machine reads the symbol under its head on an infinite tape, then writes, moves, changes state, or halts according to fixed rules."
+  ),
+
+  () => makeQuestion(
+    "What did Turing use the Turing machine to prove?",
+    "That Gödel’s work was correct",
+    [
+      "That Babbage’s machine could be built",
+      "That the Enigma code was unbreakable",
+      "That AI already existed"
+    ],
+    "Turing used his machine to support Gödel’s conclusion that not all true mathematical statements can be proven."
+  ),
+
+  () => makeQuestion(
+    "What did Alan Turing help break during World War II?",
+    "Nazi Germany’s Enigma code",
+    [
+      "The Soviet Union’s diplomatic code",
+      "The Japanese naval code",
+      "The British government’s code"
+    ],
+    "Turing helped break Nazi Germany’s Enigma code during World War II."
+  ),
+
+  () => makeQuestion(
+    "What machine did Turing design to decode German messages?",
+    "The Bombe",
+    [
+      "The Colossus",
+      "The Analytical Engine",
+      "The Turing test machine"
+    ],
+    "Turing designed the Bombe machine to help decode German Enigma messages."
+  ),
+
+  () => makeQuestion(
+    "What was Colossus?",
+    "The first programmable digital electronic computer",
+    [
+      "The first mechanical calculator",
+      "The first quantum computer",
+      "The first personal computer"
+    ],
+    "Colossus was the first programmable digital electronic computer."
+  ),
+
+  () => makeQuestion(
+    "What did Colossus use as logic circuits?",
+    "Vacuum tubes",
+    [
+      "Transistors",
+      "Microchips",
+      "Mechanical gears"
+    ],
+    "Colossus used vacuum tubes as its logic circuits."
+  ),
+
+  () => makeQuestion(
+    "What question inspired early AI research?",
+    "Is the brain a Turing machine of sorts?",
+    [
+      "Can machines build other machines?",
+      "Is the universe made of mathematics?",
+      "Can computers feel emotions?"
+    ],
+    "Early AI research was inspired by the question of whether the brain works like a Turing machine."
+  ),
+
+  () => makeQuestion(
+    "What does the Turing test measure?",
+    "Whether a machine can convince a human judge that it is human",
+    [
+      "Whether a machine can solve math proofs",
+      "Whether a machine can break encryption",
+      "Whether a machine can move like a human"
+    ],
+    "The Turing test asks whether a human judge, conversing by text, can reliably tell a machine apart from a human."
+  ),
+
+  () => makeQuestion(
+    "Has any machine passed the Turing test?",
+    "No",
+    [
+      "Yes, in 1950",
+      "Yes, in 1997",
+      "Yes, every AI passes it"
+    ],
+    "No machine has passed the Turing test yet."
   )
 ],
 
