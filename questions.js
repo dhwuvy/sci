@@ -75,29 +75,228 @@ const topicDefinitions = {
     )
   ],
 
-  "Linear Algebra": [
-    // Dynamic 2x2 Matrix Determinant Problem
-    () => {
-      const a = getRandomInt(1, 6), b = getRandomInt(1, 6);
-      const c = getRandomInt(1, 6), d = getRandomInt(1, 6);
-      const det = (a * d) - (b * c);
+  "Chapter 1: End of the Age of Silicon": [
+  () => makeQuestion(
+    "Who coined the term “quantum supremacy”?",
+    "John Preskill",
+    [
+      "Richard Feynman",
+      "Sundar Pichai",
+      "Albert Einstein"
+    ],
+    "The term “quantum supremacy” was coined by Caltech physicist John Preskill."
+  ),
 
-      return makeQuestion(
-        `Calculate the determinant of $A = \\begin{pmatrix} ${a} & ${b} \\\\ ${c} & ${d} \\end{pmatrix}$.`,
-        `$${det}$`,
-        [`$${(a * d) + (b * c)}$`, `$${(a * c) - (b * d)}$`, `$${det + getRandomInt(1, 3)}$`],
-        `$\\det(A) = (${a})(${d}) - (${b})(${c}) = ${det}$.`
-      );
-    },
+  () => makeQuestion(
+    "What is the basic idea behind quantum computers?",
+    "Computing directly using atoms themselves",
+    [
+      "Computing using only classical electrical circuits",
+      "Computing by making larger microchips",
+      "Computing using mechanical gears"
+    ],
+    "Quantum computers compute using the quantum states of atoms, as suggested by Richard Feynman."
+  ),
 
-    // Static Problem (choices automatically randomized)
-    () => makeQuestion(
-      "If matrix $A$ is $3 \\times 2$ and $B$ is $2 \\times 4$, what are the dimensions of $AB$?",
-      "$3 \\times 4$",
-      ["$2 \\times 2$", "$4 \\times 3$", "Undefined"],
-      "Inner dimensions match ($2 = 2$), so product is $3 \\times 4$."
-    )
-  ],
+  () => makeQuestion(
+    "Which scientist suggested the idea of using atoms themselves for computation?",
+    "Richard Feynman",
+    [
+      "John Preskill",
+      "Sundar Pichai",
+      "Fritz Haber"
+    ],
+    "Richard Feynman suggested that computers could compute using atoms themselves."
+  ),
+
+  () => makeQuestion(
+    "What is the basic unit of information used by a quantum computer?",
+    "Qubit",
+    [
+      "Bit",
+      "Byte",
+      "Transistor"
+    ],
+    "Quantum computers use qubits, the quantum analogue of classical bits."
+  ),
+
+  () => makeQuestion(
+    "What condition must atoms be in for quantum computation to work?",
+    "Coherence",
+    [
+      "Ionization",
+      "Superposition of classical bits",
+      "Thermal equilibrium at room temperature"
+    ],
+    "Atoms must be in unison, or coherence, for quantum computation to function."
+  ),
+
+  () => makeQuestion(
+    "How are atoms typically brought into coherence in quantum computers?",
+    "By cooling them to near 0 K",
+    [
+      "By heating them to extremely high temperatures",
+      "By exposing them to visible light only",
+      "By increasing their pressure"
+    ],
+    "Quantum computers often achieve coherence by cooling atoms to temperatures near absolute zero."
+  ),
+
+  () => makeQuestion(
+    "Which natural process is described as a quantum process that can maintain quantum effects at normal temperatures?",
+    "Photosynthesis",
+    [
+      "Volcanic eruptions",
+      "Nuclear fission",
+      "Plate tectonics"
+    ],
+    "Photosynthesis is described as a quantum process that can operate at normal temperatures, unlike most engineered quantum systems."
+  ),
+
+  () => makeQuestion(
+    "According to Moore’s Law, how often does computing power double?",
+    "Every 18 months",
+    [
+      "Every 18 days",
+      "Every 18 years",
+      "Every 225 million years"
+    ],
+    "Moore’s Law states that computing power doubles approximately every 18 months."
+  ),
+
+  () => makeQuestion(
+    "Why is Moore’s Law slowing down?",
+    "Microchips have already been optimized close to their physical limits.",
+    [
+      "Quantum computers have made classical computers obsolete.",
+      "There is no longer any demand for faster computing.",
+      "Microchips are becoming too large to manufacture."
+    ],
+    "Moore’s Law is slowing because conventional microchips have already been optimized near their limits."
+  ),
+
+  () => makeQuestion(
+    "What comparison did Sundar Pichai make about quantum computing?",
+    "It is comparable to the Wright brothers’ first flight.",
+    [
+      "It is comparable to the invention of the printing press.",
+      "It is comparable to the discovery of fire.",
+      "It is comparable to the development of the automobile."
+    ],
+    "Sundar Pichai compared the current stage of quantum computing to the Wright brothers’ early flight."
+  ),
+
+  () => makeQuestion(
+    "Which company was the first major quantum computing company to go public?",
+    "IonQ",
+    [
+      "IBM",
+      "Google",
+      "ExxonMobil"
+    ],
+    "IonQ was the first major quantum computing company to become publicly traded."
+  ),
+
+  () => makeQuestion(
+    "What is the purpose of the National Quantum Initiative Act?",
+    "To fund quantum research",
+    [
+      "To regulate lithium-sulfur battery sales",
+      "To replace classical computers with quantum computers immediately",
+      "To fund the Haber-Bosch process"
+    ],
+    "The National Quantum Initiative Act provides funding for quantum research."
+  ),
+
+  () => makeQuestion(
+    "What is computational chemistry in the context of quantum computing?",
+    "Simulating chemical properties using quantum computers",
+    [
+      "Using classical computers to build physical batteries",
+      "Using quantum computers only to encrypt data",
+      "Using chemical reactions to cool atoms"
+    ],
+    "Computational chemistry uses quantum computers to simulate the properties and behavior of chemicals."
+  ),
+
+  () => makeQuestion(
+    "According to these notes, what is the key bottleneck for solar energy?",
+    "The battery",
+    [
+      "The solar panel",
+      "The electrical grid",
+      "The inverter"
+    ],
+    "These notes identify the battery as the key bottleneck for solar energy."
+  ),
+
+  () => makeQuestion(
+    "Which battery technology are utilities and car companies trying to improve?",
+    "Lithium-sulfur batteries",
+    [
+      "Lead-acid batteries",
+      "Nickel-cadmium batteries",
+      "Alkaline batteries"
+    ],
+    "Utilities and car companies are working to increase the capacity and recharge speed of lithium-sulfur batteries."
+  ),
+
+  () => makeQuestion(
+    "Which two battery characteristics are companies trying to improve in lithium-sulfur batteries?",
+    "Capacity and recharge speed",
+    [
+      "Color and weight",
+      "Voltage and temperature",
+      "Cost and thickness"
+    ],
+    "Companies are trying to increase lithium-sulfur battery capacity and recharge speed."
+  ),
+
+  () => makeQuestion(
+    "Which company uses IBM’s quantum computers to develop new chemicals for low-energy processing and carbon capture?",
+    "ExxonMobil",
+    [
+      "IonQ",
+      "Google",
+      "Tesla"
+    ],
+    "ExxonMobil uses IBM’s computers to help create new chemicals for low-energy processing and carbon capture."
+  ),
+
+  () => makeQuestion(
+    "What drove the Green Revolution?",
+    "The Haber-Bosch process",
+    [
+      "The development of lithium-sulfur batteries",
+      "The invention of quantum supremacy",
+      "The National Quantum Initiative Act"
+    ],
+    "The Green Revolution was driven by the Haber-Bosch process, which enabled large-scale fertilizer production."
+  ),
+
+  () => makeQuestion(
+    "Approximately what percentage of the world’s energy is used by the Haber-Bosch process?",
+    "2%",
+    [
+      "10%",
+      "25%",
+      "50%"
+    ],
+    "The Haber-Bosch process accounts for approximately 2% of the world’s energy use."
+  ),
+
+  () => makeQuestion(
+    "How might quantum computers affect the Haber-Bosch process?",
+    "They could reduce the amount of energy it requires.",
+    [
+      "They could eliminate the need for nitrogen.",
+      "They could make the process require more energy.",
+      "They could replace fertilizer with solar panels."
+    ],
+    "Quantum computers could help make the Haber-Bosch process more efficient, reducing its energy use."
+  )
+],
+
   "Galaxies": [
     () => makeQuestion(
       "Which letter represents elliptical galaxies in galaxy classification?",
