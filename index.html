@@ -178,8 +178,12 @@
 
   <!-- APP ENGINE LOGIC -->
   <script>
+    const QUESTIONS_PER_BATCH = 10;
     let currentTopic = '';
     let activeQuestions = [];
+    let shuffledDefinitions = [];
+    let nextDefinitionIndex = 0;
+    let questionOffset = 0;
     let currentIndex = 0;
     let score = 0;
     let answeredCount = 0;
@@ -207,16 +211,26 @@
     }
 
     function loadQuestionsForTopic() {
-      const rawDefs = topicDefinitions[currentTopic] || [];
-      const generated = rawDefs.map(item => typeof item === 'function' ? item() : item);
-      activeQuestions = shuffleArray(generated);
+      shuffledDefinitions = shuffleArray(topicDefinitions[currentTopic] || []);
+      nextDefinitionIndex = 0;
+      loadNextBatch();
+    }
+
+    function loadNextBatch() {
+      questionOffset = nextDefinitionIndex;
+      const batch = shuffledDefinitions.slice(
+        nextDefinitionIndex,
+        nextDefinitionIndex + QUESTIONS_PER_BATCH
+      );
+      nextDefinitionIndex += batch.length;
+      activeQuestions = batch.map(item => typeof item === 'function' ? item() : item);
     }
 
     function renderQuestion() {
       const q = activeQuestions[currentIndex];
       if (!q) return;
 
-      document.getElementById('progress').innerText = `Question ${currentIndex + 1} of ${activeQuestions.length}`;
+      document.getElementById('progress').innerText = `Question ${questionOffset + currentIndex + 1} of ${shuffledDefinitions.length}`;
       document.getElementById('score').innerText = `Score: ${score}/${answeredCount}`;
       document.getElementById('question').innerHTML = q.question;
 
@@ -285,6 +299,10 @@
       currentIndex++;
       if (currentIndex < activeQuestions.length) {
         renderQuestion();
+      } else if (nextDefinitionIndex < shuffledDefinitions.length) {
+        loadNextBatch();
+        currentIndex = 0;
+        renderQuestion();
       } else {
         showCompletionScreen();
       }
@@ -295,8 +313,8 @@
       const completedContainer = document.getElementById('completed-container');
       completedContainer.style.display = 'block';
 
-      const pct = Math.round((score / activeQuestions.length) * 100);
-      document.getElementById('final-score').innerHTML = `You scored <strong>${score} / ${activeQuestions.length}</strong> (${pct}%) in <em>${currentTopic}</em>.`;
+      const pct = Math.round((score / answeredCount) * 100);
+      document.getElementById('final-score').innerHTML = `You scored <strong>${score} / ${answeredCount}</strong> (${pct}%) in <em>${currentTopic}</em>.`;
     }
 
     function resetQuiz() {
