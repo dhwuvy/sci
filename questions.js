@@ -168,8 +168,7 @@ const topicDefinitions = {
     );
   },
 ],
-
-  "Chapter 1: End of the Age of Silicon": [
+"Chapter 1: End of the Age of Silicon": [
   () => makeQuestion(
     "Who coined the term “quantum supremacy”?",
     "John Preskill",
@@ -622,8 +621,239 @@ const topicDefinitions = {
     "No machine has passed the Turing test yet."
   )
 ],
+"Chapter 3: Rise of the Quantum": [
+  () => makeQuestion(
+    "Who created quantum theory?",
+    "Max Planck",
+    [
+      "Albert Einstein",
+      "Erwin Schrödinger",
+      "Werner Heisenberg"
+    ],
+    "Max Planck is credited with creating quantum theory."
+  ),
 
-  "Galaxies": [
+  () => makeQuestion(
+    "What idea did Planck’s quantum theory challenge?",
+    "Newtonian determinism",
+    [
+      "Relativity",
+      "Evolution",
+      "Classical thermodynamics"
+    ],
+    "Planck’s theory challenged Newtonian determinism, which viewed the universe as a clock obeying Newton’s laws."
+  ),
+
+  () => makeQuestion(
+    "What did Planck propose about energy?",
+    "It comes in packets of a certain size",
+    [
+      "It flows continuously in any amount",
+      "It exists only as waves",
+      "It cannot be measured"
+    ],
+    "Planck stated that energy occurs in discrete packets called quanta."
+  ),
+
+  () => makeQuestion(
+    "What problem did Planck’s idea of energy quanta solve?",
+    "The Rayleigh-Jeans catastrophe",
+    [
+      "The photoelectric effect",
+      "Quantum entanglement",
+      "The uncertainty principle"
+    ],
+    "Planck’s idea of energy packets solved the problem of predicting light emitted from a hot object, known as the Rayleigh-Jeans catastrophe."
+  ),
+
+  () => makeQuestion(
+    "What does Planck’s constant show?",
+    "That energy at very small scales comes in discrete packets",
+    [
+      "That energy is always continuous",
+      "That light travels faster than anything else",
+      "That gravity controls quantum particles"
+    ],
+    "Planck’s constant shows that energy at very small scales comes in discrete packets called quanta."
+  ),
+
+  () => makeQuestion(
+    "What happens to physics as Planck’s constant approaches zero?",
+    "We get Newtonian physics",
+    [
+      "We get quantum physics",
+      "We get relativity",
+      "We get no physics"
+    ],
+    "As Planck’s constant goes to zero, quantum effects disappear and Newtonian physics applies."
+  ),
+
+  () => makeQuestion(
+    "What did Einstein explain using light quanta?",
+    "The photoelectric effect",
+    [
+      "The double-slit experiment",
+      "Quantum entanglement",
+      "Schrödinger’s cat"
+    ],
+    "Einstein explained the photoelectric effect by claiming that light energy could occur in quanta."
+  ),
+
+  () => makeQuestion(
+    "What question did Louis de Broglie ask?",
+    "If light can be a particle and wave, why can’t matter?",
+    [
+      "Can matter travel faster than light?",
+      "Can energy be created from nothing?",
+      "Can particles exist without mass?"
+    ],
+    "De Broglie asked whether matter, like light, could behave as both a particle and a wave."
+  ),
+
+  () => makeQuestion(
+    "What does the double-slit experiment demonstrate?",
+    "That light and particles can behave like both waves and particles",
+    [
+      "That particles always travel in straight lines",
+      "That light cannot interfere with itself",
+      "That electrons have no mass"
+    ],
+    "The double-slit experiment shows wave-particle behavior through interference patterns."
+  ),
+
+  () => makeQuestion(
+    "What happens to the double-slit interference pattern when you measure which slit a particle passes through?",
+    "It disappears",
+    [
+      "It becomes stronger",
+      "It splits into two patterns",
+      "It reverses direction"
+    ],
+    "Trying to measure which slit a particle passes through destroys the interference pattern."
+  ),
+
+  () => makeQuestion(
+    "What does Schrödinger’s equation describe?",
+    "How a quantum particle’s wave function changes over time",
+    [
+      "How planets orbit the Sun",
+      "How light travels through glass",
+      "How atoms combine in chemical reactions"
+    ],
+    "Schrödinger’s equation describes the time evolution of a quantum particle’s wave function."
+  ),
+
+  () => makeQuestion(
+    "What can Schrödinger’s equation help calculate?",
+    "The probabilities of a particle’s location or energy",
+    [
+      "The exact path of every particle",
+      "The age of the universe",
+      "The speed of light"
+    ],
+    "The equation lets you calculate probabilities for where a particle may be found or what energy it may have."
+  ),
+
+  () => makeQuestion(
+    "What is Schrödinger’s cat a thought experiment about?",
+    "Superposition before observation",
+    [
+      "Quantum tunneling",
+      "Entanglement between cats",
+      "The speed of light"
+    ],
+    "Schrödinger’s cat links a cat’s fate to a random quantum event, placing it in a superposition of alive and dead before observation."
+  ),
+
+  () => makeQuestion(
+    "What did George Berkeley believe about objects?",
+    "They do not exist until observed",
+    [
+      "They exist independently of observation",
+      "They are made entirely of energy",
+      "They cannot change over time"
+    ],
+    "George Berkeley believed that objects do not exist until they are observed."
+  ),
+
+  () => makeQuestion(
+    "What did Max Born say about the wave function?",
+    "Its amplitude gives the probability of finding a particle in a state or location",
+    [
+      "It gives the exact position of a particle",
+      "It describes only light waves",
+      "It proves particles have no energy"
+    ],
+    "Max Born interpreted the wave function’s amplitude as a probability for a particle’s state or location."
+  ),
+
+  () => makeQuestion(
+    "What is Heisenberg’s uncertainty principle?",
+    "Certain pairs of properties cannot both be known with perfect precision at the same time",
+    [
+      "All particles have uncertain mass",
+      "Energy cannot be measured",
+      "Light always behaves as a particle"
+    ],
+    "The uncertainty principle states that certain pairs of properties, such as position and momentum, cannot both be known perfectly at once."
+  ),
+
+  () => makeQuestion(
+    "What did John von Neumann propose about the macroworld and microworld?",
+    "There is an invisible wall between them with different laws of physics",
+    [
+      "They follow exactly the same laws",
+      "The microworld does not exist",
+      "The macroworld is made of quanta"
+    ],
+    "Von Neumann proposed that the macro and micro worlds are separated by an invisible wall and follow different physical laws."
+  ),
+
+  () => makeQuestion(
+    "What did Bohr and Einstein disagree about?",
+    "Whether quantum randomness is fundamental or shows the theory is incomplete",
+    [
+      "Whether light has a speed limit",
+      "Whether atoms contain electrons",
+      "Whether gravity exists"
+    ],
+    "Bohr and Einstein disagreed over the meaning of quantum mechanics, especially whether its randomness is fundamental."
+  ),
+
+  () => makeQuestion(
+    "Who wrote the EPR paper?",
+    "Einstein, Podolsky, and Rosen",
+    [
+      "Planck, Bohr, and Heisenberg",
+      "Schrödinger, Born, and de Broglie",
+      "Newton, Maxwell, and Faraday"
+    ],
+    "The EPR paper was written by Einstein, Podolsky, and Rosen."
+  ),
+
+  () => makeQuestion(
+    "What did the EPR paper argue about quantum entanglement?",
+    "That it shows quantum mechanics cannot be a complete description of reality",
+    [
+      "That it proves particles cannot interact",
+      "That it eliminates randomness from physics",
+      "That it only applies to light"
+    ],
+    "The EPR paper argued that entanglement implies quantum mechanics is incomplete because measuring one particle seems to reveal a property of a distant particle."
+  ),
+
+  () => makeQuestion(
+    "What role did Heisenberg have during World War II?",
+    "He was the Nazi lead on developing the atomic bomb",
+    [
+      "He led the Allied atomic bomb project",
+      "He broke the Enigma code",
+      "He designed radar systems"
+    ],
+    "Heisenberg led Nazi Germany’s atomic bomb development effort, which failed."
+  )
+],
+"Galaxies": [
     () => makeQuestion(
       "Which letter represents elliptical galaxies in galaxy classification?",
       "E",
@@ -893,5 +1123,5 @@ const topicDefinitions = {
       ],
       "An active galactic nucleus is powered by matter accreting onto the galaxy's central black hole."
     )
-  ]
+]
 };
